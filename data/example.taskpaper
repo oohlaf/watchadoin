@@ -1,0 +1,20 @@
+OneCo: @cust(oneco)
+	- Prepare demo for upsell meeting with sales
+
+ExCo: @cust(exco)
+	Project CashCow:
+		- Project kick-off @done(2022-01-05)
+		- Architecture document
+		- Review customer journeys
+			Take into account the flow from @cust(oneco)
+
+Currently:
+	- 2022-01-10 09:00 | Day start and emails @done(2022-01-10 09:30)
+	- 2022-01-10 09:30 | Daily @standup @done(2022-01-10 10:00)
+	- 2022-01-10 10:00 | @meeting @cust(exco) @done(2022-01-10 11:00)
+	- 2022-01-10 11:00 | @coding @cust(oneco) @done(2022-01-10 12:00)
+	- 2022-01-10 12:00 | @lunch @done(2022-01-10 12:30)
+	- 2022-01-10 12:30 | @testing @cust(oneco) @done(2022-01-10 15:00)
+	- 2022-01-10 15:00 | Writing @architecture @cust(exco) @done(2022-01-10 16:00)
+	- 2022-01-10 16:00 | @meeting @cust(oneco) @done(2022-01-10 16:30)
+	- 2022-01-10 16:30 | Various emails @done(2022-01-10 17:30)

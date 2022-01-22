@@ -1,0 +1,487 @@
+=== testcase ===
+test empty four spaces
+<-- input
+    
+--> output
+Token('EMPTY', '', 1, 0)
+=== testcase ===
+test empty two tabs
+<-- input
+		
+--> output
+Token('EMPTY', '', 1, 0)
+=== testcase ===
+test empty mixed whitespace
+<-- input
+	    	
+--> output
+Token('EMPTY', '', 1, 0)
+=== testcase ===
+test project
+<-- input
+project:
+--> output
+Token('PROJECT', 'project', 1, 0)
+Token(':', ':', 1, 7)
+=== testcase ===
+test project indented
+<-- input
+	project:
+--> output
+Token('INDENT', '\t', 1, 0)
+Token('PROJECT', 'project', 1, 1)
+Token(':', ':', 1, 8)
+=== testcase ===
+test project tag
+<-- input
+project: @tag
+--> output
+Token('PROJECT', 'project', 1, 0)
+Token(':', ':', 1, 7)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'tag', 1, 10)
+=== testcase ===
+test project tag value
+<-- input
+project: @tag(value)
+--> output
+Token('PROJECT', 'project', 1, 0)
+Token(':', ':', 1, 7)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'tag', 1, 10)
+Token('(', '(', 1, 13)
+Token('TAG_VALUE_TEXT', 'value', 1, 14)
+Token(')', ')', 1, 19)
+=== testcase ===
+test project tag escaped value
+<-- input
+project: @tag(va\(l\)ue)
+--> output
+Token('PROJECT', 'project', 1, 0)
+Token(':', ':', 1, 7)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'tag', 1, 10)
+Token('(', '(', 1, 13)
+Token('TAG_VALUE_TEXT', 'va\\(l\\)ue', 1, 14)
+Token(')', ')', 1, 23)
+=== testcase ===
+test project tag value trailing chars
+# Due to trailing chars seen as NOTE.
+<-- input
+project: @tag(value) abc
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'project: ', 1, 0)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'tag', 1, 10)
+Token('(', '(', 1, 13)
+Token('TAG_VALUE_TEXT', 'value', 1, 14)
+Token(')', ')', 1, 19)
+Token('TEXT', ' abc', 1, 20)
+=== testcase ===
+test project two tags
+# Seen as NOTE because only one tag is allowed to follow a project.
+<-- input
+project: @tag1 @tag2
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'project: ', 1, 0)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'tag1', 1, 10)
+Token('TEXT', ' ', 1, 14)
+Token('@', '@', 1, 15)
+Token('TAG_NAME', 'tag2', 1, 16)
+=== testcase ===
+test project containing white space
+<-- input
+project one two: @tag
+--> output
+Token('PROJECT', 'project one two', 1, 0)
+Token(':', ':', 1, 15)
+Token('@', '@', 1, 17)
+Token('TAG_NAME', 'tag', 1, 18)
+=== testcase ===
+test project containing colons
+<-- input
+project:: @tag
+--> output
+Token('PROJECT', 'project:', 1, 0)
+Token(':', ':', 1, 8)
+Token('@', '@', 1, 10)
+Token('TAG_NAME', 'tag', 1, 11)
+=== testcase ===
+test project containing white space and colons
+<-- input
+project one: two :: @tag
+--> output
+Token('PROJECT', 'project one: two :', 1, 0)
+Token(':', ':', 1, 18)
+Token('@', '@', 1, 20)
+Token('TAG_NAME', 'tag', 1, 21)
+=== testcase ===
+test task empty
+<-- input
+- 
+--> output
+Token('TASK', '-', 1, 0)
+=== testcase ===
+test task empty missing whitespace
+# Seen as NOTE due to missing whitespace following bullet.
+<-- input
+-
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', '-', 1, 0)
+=== testcase ===
+test task
+<-- input
+- a task
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task', 1, 2)
+=== testcase ===
+test task missing whitespace
+# Seen as NOTE due to missing whitespace following bullet.
+<-- input
+-not a task
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', '-not a task', 1, 0)
+=== testcase ===
+test task indented
+<-- input
+	- a task
+--> output
+Token('INDENT', '\t', 1, 0)
+Token('TASK', '-', 1, 1)
+Token('TEXT', 'a task', 1, 3)
+=== testcase ===
+test task tag
+<-- input
+- a task with @tag
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'tag', 1, 15)
+=== testcase ===
+test task two tags
+<-- input
+- a task with @tag1 @tag2 in the middle
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'tag1', 1, 15)
+Token('TEXT', ' ', 1, 19)
+Token('@', '@', 1, 20)
+Token('TAG_NAME', 'tag2', 1, 21)
+Token('TEXT', ' in the middle', 1, 25)
+=== testcase ===
+test task tag date only
+<-- input
+- @tag(2022-02-01)
+--> output
+Token('TASK', '-', 1, 0)
+Token('@', '@', 1, 2)
+Token('TAG_NAME', 'tag', 1, 3)
+Token('(', '(', 1, 6)
+Token('TAG_VALUE_DATE', datetime.datetime(2022, 2, 1, 0, 0), 1, 7)
+Token(')', ')', 1, 17)
+=== testcase ===
+test task escaped value
+<-- input
+- @tag(va\(l\)ue)
+--> output
+Token('TASK', '-', 1, 0)
+Token('@', '@', 1, 2)
+Token('TAG_NAME', 'tag', 1, 3)
+Token('(', '(', 1, 6)
+Token('TAG_VALUE_TEXT', 'va\\(l\\)ue', 1, 7)
+Token(')', ')', 1, 16)
+=== testcase ===
+test task tag integer
+<-- input
+- a task with @prio(1)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'prio', 1, 15)
+Token('(', '(', 1, 19)
+Token('TAG_VALUE_INT', 1, 1, 20)
+Token(')', ')', 1, 21)
+=== testcase ===
+test task tag floating point
+<-- input
+- a task with @tag(3.14)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'tag', 1, 15)
+Token('(', '(', 1, 18)
+Token('TAG_VALUE_FLOAT', 3.14, 1, 19)
+Token(')', ')', 1, 23)
+=== testcase ===
+test task tag high precision floating point
+# High precision gets truncated.
+<-- input
+- a task with @tag(3.1415926535897932384626433832795028841971693993751058209749445923078164062)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'tag', 1, 15)
+Token('(', '(', 1, 18)
+Token('TAG_VALUE_FLOAT', 3.141592653589793, 1, 19)
+Token(')', ')', 1, 94)
+=== testcase ===
+test task just a tag
+<-- input
+- @tag
+--> output
+Token('TASK', '-', 1, 0)
+Token('@', '@', 1, 2)
+Token('TAG_NAME', 'tag', 1, 3)
+=== testcase ===
+test task tags in a sentence
+<-- input
+- a task with @tag1, @tag2 and @tag3.
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'tag1', 1, 15)
+Token('TEXT', ', ', 1, 19)
+Token('@', '@', 1, 21)
+Token('TAG_NAME', 'tag2', 1, 22)
+Token('TEXT', ' and ', 1, 26)
+Token('@', '@', 1, 31)
+Token('TAG_NAME', 'tag3', 1, 32)
+Token('TEXT', '.', 1, 36)
+=== testcase ===
+test task tags with values in a sentence
+<-- input
+- a task with @tag1(value1), @tag2() and @tag3(value3).
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', 'tag1', 1, 15)
+Token('(', '(', 1, 19)
+Token('TAG_VALUE_TEXT', 'value1', 1, 20)
+Token(')', ')', 1, 26)
+Token('TEXT', ', ', 1, 27)
+Token('@', '@', 1, 29)
+Token('TAG_NAME', 'tag2', 1, 30)
+Token('(', '(', 1, 34)
+Token('TAG_VALUE_TEXT', '', 1, 35)
+Token(')', ')', 1, 35)
+Token('TEXT', ' and ', 1, 36)
+Token('@', '@', 1, 41)
+Token('TAG_NAME', 'tag3', 1, 42)
+Token('(', '(', 1, 46)
+Token('TAG_VALUE_TEXT', 'value3', 1, 47)
+Token(')', ')', 1, 53)
+Token('TEXT', '.', 1, 54)
+=== testcase ===
+test task empty tags
+<-- input
+- a task with @, @ and @().
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task with ', 1, 2)
+Token('@', '@', 1, 14)
+Token('TAG_NAME', '', 1, 15)
+Token('TEXT', ', ', 1, 15)
+Token('@', '@', 1, 17)
+Token('TAG_NAME', '', 1, 18)
+Token('TEXT', ' and ', 1, 18)
+Token('@', '@', 1, 23)
+Token('TAG_NAME', '', 1, 24)
+Token('(', '(', 1, 24)
+Token('TAG_VALUE_TEXT', '', 1, 25)
+Token(')', ')', 1, 25)
+Token('TEXT', '.', 1, 26)
+=== testcase ===
+test task done tag date only
+<-- input
+- a task @done(2022-02-01)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task ', 1, 2)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'done', 1, 10)
+Token('(', '(', 1, 14)
+Token('TAG_VALUE_DATE', datetime.datetime(2022, 2, 1, 0, 0), 1, 15)
+Token(')', ')', 1, 25)
+=== testcase ===
+test task done tag invalid date
+<-- input
+- a task @done(2022-02-31)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task ', 1, 2)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'done', 1, 10)
+Token('(', '(', 1, 14)
+Token('ERROR', 'Invalid date input', 1, 15)
+Token(')', ')', 1, 25)
+=== testcase ===
+test task done tag wrong order date
+# Careful as this gets matched as TEXT!
+<-- input
+- a task @done(01-02-2022)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task ', 1, 2)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'done', 1, 10)
+Token('(', '(', 1, 14)
+Token('TAG_VALUE_TEXT', '01-02-2022', 1, 15)
+Token(')', ')', 1, 25)
+=== testcase ===
+test task done tag invalid time
+<-- input
+- a task @done(2022-02-01 25:10)
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task ', 1, 2)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'done', 1, 10)
+Token('(', '(', 1, 14)
+Token('ERROR', 'Invalid date or time input', 1, 15)
+Token(')', ')', 1, 31)
+=== testcase ===
+test task doing
+<-- input
+- 2022-02-01 09:15 | a doing task
+--> output
+Token('TASK', '-', 1, 0)
+Token('DOING', datetime.datetime(2022, 2, 1, 9, 15), 1, 2)
+Token('|', '|', 1, 19)
+Token('TEXT', 'a doing task', 1, 21)
+=== testcase ===
+test task doing invalid date
+<-- input
+- 2022-02-31 09:15 | a doing task
+--> output
+Token('TASK', '-', 1, 0)
+Token('ERROR', 'Invalid date or time input', 1, 2)
+Token('|', '|', 1, 19)
+Token('TEXT', 'a doing task', 1, 21)
+=== testcase ===
+test task doing invalid time
+<-- input
+- 2022-02-01 25:15 | a doing task
+--> output
+Token('TASK', '-', 1, 0)
+Token('ERROR', 'Invalid date or time input', 1, 2)
+Token('|', '|', 1, 19)
+Token('TEXT', 'a doing task', 1, 21)
+=== testcase ===
+test task doing done tag date and time
+<-- input
+- 2022-02-01 09:15 | a doing task @done(2022-02-01 10:00)
+--> output
+Token('TASK', '-', 1, 0)
+Token('DOING', datetime.datetime(2022, 2, 1, 9, 15), 1, 2)
+Token('|', '|', 1, 19)
+Token('TEXT', 'a doing task ', 1, 21)
+Token('@', '@', 1, 34)
+Token('TAG_NAME', 'done', 1, 35)
+Token('(', '(', 1, 39)
+Token('TAG_VALUE_DATETIME', datetime.datetime(2022, 2, 1, 10, 0), 1, 40)
+Token(')', ')', 1, 56)
+=== testcase ===
+test note
+<-- input
+a note
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'a note', 1, 0)
+=== testcase ===
+test note indented
+<-- input
+	a note
+--> output
+Token('INDENT', '\t', 1, 0)
+Token('NOTE', None, 1, 1)
+Token('TEXT', 'a note', 1, 1)
+=== testcase ===
+test note tag
+<-- input
+a note with @tag
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'a note with ', 1, 0)
+Token('@', '@', 1, 12)
+Token('TAG_NAME', 'tag', 1, 13)
+=== testcase ===
+test note two tags
+<-- input
+a note with @tag1 @tag2 in the middle
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'a note with ', 1, 0)
+Token('@', '@', 1, 12)
+Token('TAG_NAME', 'tag1', 1, 13)
+Token('TEXT', ' ', 1, 17)
+Token('@', '@', 1, 18)
+Token('TAG_NAME', 'tag2', 1, 19)
+Token('TEXT', ' in the middle', 1, 23)
+=== testcase ===
+test note just a tag
+<-- input
+@tag
+--> output
+Token('NOTE', None, 1, 0)
+Token('@', '@', 1, 0)
+Token('TAG_NAME', 'tag', 1, 1)
+=== testcase ===
+test note tags in a sentence
+<-- input
+a note with @tag1, @tag2 and @tag3.
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'a note with ', 1, 0)
+Token('@', '@', 1, 12)
+Token('TAG_NAME', 'tag1', 1, 13)
+Token('TEXT', ', ', 1, 17)
+Token('@', '@', 1, 19)
+Token('TAG_NAME', 'tag2', 1, 20)
+Token('TEXT', ' and ', 1, 24)
+Token('@', '@', 1, 29)
+Token('TAG_NAME', 'tag3', 1, 30)
+Token('TEXT', '.', 1, 34)
+=== testcase ===
+test note tags with values in a sentence
+<-- input
+a note with @tag1(value1), @tag2() and @tag3(value3).
+--> output
+Token('NOTE', None, 1, 0)
+Token('TEXT', 'a note with ', 1, 0)
+Token('@', '@', 1, 12)
+Token('TAG_NAME', 'tag1', 1, 13)
+Token('(', '(', 1, 17)
+Token('TAG_VALUE_TEXT', 'value1', 1, 18)
+Token(')', ')', 1, 24)
+Token('TEXT', ', ', 1, 25)
+Token('@', '@', 1, 27)
+Token('TAG_NAME', 'tag2', 1, 28)
+Token('(', '(', 1, 32)
+Token('TAG_VALUE_TEXT', '', 1, 33)
+Token(')', ')', 1, 33)
+Token('TEXT', ' and ', 1, 34)
+Token('@', '@', 1, 39)
+Token('TAG_NAME', 'tag3', 1, 40)
+Token('(', '(', 1, 44)
+Token('TAG_VALUE_TEXT', 'value3', 1, 45)
+Token(')', ')', 1, 51)
+Token('TEXT', '.', 1, 52)
+#=== testcase ===
+#test zzz template
+#<-- input
+#--> output
+=== eof ===
