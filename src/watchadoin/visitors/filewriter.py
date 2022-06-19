@@ -19,6 +19,7 @@ from watchadoin.nodes import (
 )
 from watchadoin.parser import TaskPaperParser
 from watchadoin.utils import visitor
+from watchadoin.visitors.id import IdVisitor
 
 
 log = logging.getLogger()
@@ -30,7 +31,7 @@ def configure_logging():  # pragma: no cover
     log.addHandler(console_log)
 
 
-class PrintVisitor:
+class FileWriterVisitor:
     def __init__(self, f="-") -> None:
         if f == "-":
             self.f = sys.stdout
@@ -47,7 +48,7 @@ class PrintVisitor:
 
     @visitor.when(TaskPaperDocument)
     def visit(self, node):
-        for child in node.get_children():
+        for child in node.children:
             child.accept(self)
 
     @visitor.when(Empty)
@@ -60,10 +61,10 @@ class PrintVisitor:
         self.f.write(f"{node.name}:")
         if node.has_tag():
             self.f.write(" ")
-            node.get_tag().accept(self)
+            node.tag.accept(self)
         self.f.write("\n")
         self.level += 1
-        for child in node.get_children():
+        for child in node.children:
             child.accept(self)
         self.level -= 1
 
@@ -71,11 +72,13 @@ class PrintVisitor:
     def visit(self, node):
         self.write_padding()
         self.f.write(f"{node.symbol} ")
-        for content in node.get_content():
+        for content in node.contents:
             content.accept(self)
+        if node.id:
+            self.f.write(f" <{node.id}>")
         self.f.write("\n")
         self.level += 1
-        for child in node.get_children():
+        for child in node.children:
             child.accept(self)
         self.level -= 1
 
@@ -85,22 +88,24 @@ class PrintVisitor:
         self.f.write(f"{node.symbol} ")
         self.f.write(node.date.isoformat(sep=" ", timespec="minutes"))
         self.f.write(" | ")
-        for content in node.get_content():
+        for content in node.contents:
             content.accept(self)
+        if node.id:
+            self.f.write(f" <{node.id}>")
         self.f.write("\n")
         self.level += 1
-        for child in node.get_children():
+        for child in node.children:
             child.accept(self)
         self.level -= 1
 
     @visitor.when(Note)
     def visit(self, node):
         self.write_padding()
-        for content in node.get_content():
+        for content in node.contents:
             content.accept(self)
         self.f.write("\n")
         self.level += 1
-        for child in node.get_children():
+        for child in node.children:
             child.accept(self)
         self.level -= 1
 
@@ -143,7 +148,8 @@ def main():  # pragma: no cover
 
     lexer = TaskPaperLexer()
     parser = TaskPaperParser()
-    printer = PrintVisitor()
+    id_walker = IdVisitor()
+    writer = FileWriterVisitor()
 
     with open("data/example.taskpaper", "r") as f:
         tokens = lexer.tokenize_file(f)
@@ -151,7 +157,8 @@ def main():  # pragma: no cover
             doc = parser.parse(tokens)
         except SyntaxError:
             log.exception("Syntax Error")
-    printer.visit(doc)
+    id_walker.visit(doc)
+    writer.visit(doc)
     log.info("end")
 
 

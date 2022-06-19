@@ -43,6 +43,7 @@ class TaskPaperLexer:
         "TAG_VALUE_DATETIME",
         "TAG_VALUE_FLOAT",
         "TAG_VALUE_INT",
+        "TASK_ID",
         "ERROR",
         "EOF",
     ]
@@ -53,6 +54,8 @@ class TaskPaperLexer:
         "(",
         ")",
         "|",
+        "<",
+        ">",
     ]
 
     _item_patterns = {
@@ -60,10 +63,10 @@ class TaskPaperLexer:
         "EMPTY": re.compile(r"^\s*$"),
         # A task is a bulleted list.
         # A doing task starts with a date and time.
-        "TASK": re.compile(r"^(\t*)([-+*])(?:\s([0-9 :-]+)\s(\|))?\s(.*)$"),
+        "TASK": re.compile(r"^(\t*)([-+*])(?:\s+([0-9 :-]+)\s+(\|))?\s+(.*?)(?:\s+<([a-z0-9]{32})>)?$"),
         # A project ends with a colon and optional tag.
         "PROJECT": re.compile(r"^(\t*)((?:[^-+*\s]|(?:[-+*]\S)).*):(?:\s+@([^\s()]*)(\(((?:\\\(|\\\)|[^()])*)\))?)?$"),
-        # Notes act as a catchall for input
+        # Notes act as a catchall for input.
         "NOTE": re.compile(r"^(\t*)(.*)$"),
     }
 
@@ -127,6 +130,10 @@ class TaskPaperLexer:
                         yield from self._tokenize_item_text(
                             match.group(5), lineno=lineno, index=match.start(5), context=text
                         )
+                    if match.group(6):
+                        yield from self._tokenize_task_id(
+                            match.group(6), lineno=lineno, index=match.start(6), context=text
+                        )
                 elif kind == "PROJECT":
                     log.debug("Line %i is a project", lineno)
                     if match.group(1):
@@ -175,6 +182,11 @@ class TaskPaperLexer:
             # Practically unreachable due to NOTE acting as catch-all.
             log.warning('Line %i contains illegal input: "%s"', lineno, text)
             yield Token(type="ERROR", value="Illegal input", lineno=lineno, context=text)
+
+    def _tokenize_task_id(self, text, lineno=1, index=0, context=""):
+        yield Token(type="<", value="<", lineno=lineno, index=index - 1, context=context)
+        yield Token(type="TASK_ID", value=text, lineno=lineno, index=index, context=context)
+        yield Token(type=">", value=">", lineno=lineno, index=index + len(text), context=context)
 
     def _tokenize_item_text(self, text, lineno=1, index=0, context=""):
         pos = 0

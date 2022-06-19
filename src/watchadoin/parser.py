@@ -53,7 +53,8 @@ class TaskPaperParser:
                 if not self._parse_item(parent=doc):
                     log.error("Unexpected input %r", self.cur_token)
                     raise SyntaxError(
-                        "Unexpected input", (None, self.cur_token.lineno, self.cur_token.index + 1, self.cur_token.context)
+                        "Unexpected input",
+                        (None, self.cur_token.lineno, self.cur_token.index + 1, self.cur_token.context),
                     )
         except StopIteration:
             pass
@@ -105,7 +106,7 @@ class TaskPaperParser:
                 node.attach_tag(tag)
             return self._parse_nested_items(node)
 
-    def _parse_task(self, parent=None) -> Project | None:
+    def _parse_task(self, parent=None) -> Task | Doing | None:
         if self.cur_token.type == "TASK":
             symbol = self.cur_token.value
             self._advance()
@@ -124,6 +125,17 @@ class TaskPaperParser:
             while self.cur_token.type in ["TEXT", "@"]:
                 content = self._parse_text() or self._parse_tag()
                 node.add_content(content)
+            if self.cur_token.type == "<" and self.next_token == "TASK_ID":
+                self._advance()
+                node.id = self.cur_token.value
+                self._advance()
+                if self.cur_token.type == ">":
+                    self._advance()
+                else:
+                    raise SyntaxError(
+                        "Expected a closing symbol > after a task ID",
+                        (None, self.cur_token.lineno, self.cur_token.index + 1, self.cur_token.context),
+                    )
             return self._parse_nested_items(node)
 
     def _parse_note(self, parent=None) -> Note | None:

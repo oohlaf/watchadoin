@@ -48,6 +48,9 @@ STYLES = {
     "(": format("white"),
     ")": format("white"),
     "|": format("white"),
+    "<": format("silver"),
+    ">": format("silver"),
+    "TASK_ID": format("silver"),
     "TASK_DONE": format("silver", style=["strikeout"]),
     "TAG_NAME_DONE": format("gray", style=["strikeout"]),
     "TAG_VALUE_TEXT_DONE": format("silver", style=["strikeout"]),
@@ -94,6 +97,7 @@ class TaskPaperHighlighter(QSyntaxHighlighter):
 
         # Format the line token by token according to type
         for tok in tokens:
+            log.debug(tok)
             length = None
             style = "DEFAULT"
             if tok.type == "TEXT":

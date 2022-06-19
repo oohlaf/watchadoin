@@ -3,7 +3,7 @@ import pytest
 
 from watchadoin.lexer import TaskPaperLexer
 from watchadoin.parser import TaskPaperParser
-from watchadoin.visitor import PrintVisitor
+from watchadoin.visitors.printer import PrintVisitor
 
 
 def pytest_collect_file(parent, path):
@@ -83,7 +83,7 @@ class TaskPaperParserItem(pytest.Item):
     def runtest(self):
         lexer = TaskPaperLexer()
         tokens = list(lexer.tokenize_text(self.input, eof=True))
-        input_tokens = tokens[:-2 or None]
+        input_tokens = tokens[: -2 or None]
         result = "\n".join([repr(token) for token in input_tokens]) + "\n"
         if result != self.output_lexer:
             raise TaskPaperLexerException(self, result, self.output_lexer)

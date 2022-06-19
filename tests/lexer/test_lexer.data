@@ -395,6 +395,38 @@ Token('(', '(', 1, 39)
 Token('TAG_VALUE_DATETIME', datetime.datetime(2022, 2, 1, 10, 0), 1, 40)
 Token(')', ')', 1, 56)
 === testcase ===
+test task with ID
+<-- input
+- a task @done(2022-02-01 10:00) <eb87f222a917817f6e61a5be6d4bacb1>
+--> output
+Token('TASK', '-', 1, 0)
+Token('TEXT', 'a task ', 1, 2)
+Token('@', '@', 1, 9)
+Token('TAG_NAME', 'done', 1, 10)
+Token('(', '(', 1, 14)
+Token('TAG_VALUE_DATETIME', datetime.datetime(2022, 2, 1, 10, 0), 1, 15)
+Token(')', ')', 1, 31)
+Token('<', '<', 1, 33)
+Token('TASK_ID', 'eb87f222a917817f6e61a5be6d4bacb1', 1, 34)
+Token('>', '>', 1, 66)
+=== testcase ===
+test task doing with ID
+<-- input
+- 2022-02-01 09:15 | a doing task @done(2022-02-01 10:00) <eb87f222a917817f6e61a5be6d4bacb1>
+--> output
+Token('TASK', '-', 1, 0)
+Token('DOING', datetime.datetime(2022, 2, 1, 9, 15), 1, 2)
+Token('|', '|', 1, 19)
+Token('TEXT', 'a doing task ', 1, 21)
+Token('@', '@', 1, 34)
+Token('TAG_NAME', 'done', 1, 35)
+Token('(', '(', 1, 39)
+Token('TAG_VALUE_DATETIME', datetime.datetime(2022, 2, 1, 10, 0), 1, 40)
+Token(')', ')', 1, 56)
+Token('<', '<', 1, 58)
+Token('TASK_ID', 'eb87f222a917817f6e61a5be6d4bacb1', 1, 59)
+Token('>', '>', 1, 91)
+=== testcase ===
 test note
 <-- input
 a note
